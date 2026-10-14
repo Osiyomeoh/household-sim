@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "scenario": "nobody has the fuel",
+  "model": "bedrock:us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "recordedAt": "2026-10-14T14:15:15.835Z",
+  "tools": {
+    "grandma": "5213d4f7988be09e",
+    "ada": "5213d4f7988be09e",
+    "tunde": "5213d4f7988be09e"
+  },
+  "turns": [
+    {
+      "step": 2,
+      "as": "grandma",
+      "text": "",
+      "toolUses": [
+        {
+          "id": "tooluse_H5aDzG8dUq75Wyzef98E7c",
+          "name": "list_chores",
+          "input": {}
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "as": "grandma",
+      "text": "Yes, the generator fuel has been waiting for someone since this morning at 7:10 AM, and the water tank also needs someone to take it.",
+      "toolUses": []
+    },
+    {
+      "step": 3,
+      "as": "ada",
+      "text": "",
+      "toolUses": [
+        {
+          "id": "tooluse_6USnQQblXEciuy6xFumuqV",
+          "name": "take_chore",
+          "input": {
+            "chore": "diesel"
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "as": "ada",
+      "text": "Got it, Ada. You have the generator fuel now.",
+      "toolUses": []
+    },
+    {
+      "step": 5,
+      "as": "tunde",
+      "text": "",
+      "toolUses": [
+        {
+          "id": "tooluse_9ZQpNA6qx0TyTIcFOSmSA2",
+          "name": "take_chore",
+          "input": {
+            "chore": "fuel for the generator"
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "as": "tunde",
+      "text": "Ada already has the generator fuel. Do you want to take it over from Ada?",
+      "toolUses": []
+    },
+    {
+      "step": 6,
+      "as": "tunde",
+      "text": "Okay, I'll leave the generator fuel with Ada.",
+      "toolUses": []
+    },
+    {
+      "step": 7,
+      "as": "ada",
+      "text": "",
+      "toolUses": [
+        {
+          "id": "tooluse_1ucldX14VEUMvak19r84IO",
+          "name": "mark_done",
+          "input": {
+            "chore": "generator"
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "as": "ada",
+      "text": "Great! I've marked the generator fuel as done.",
+      "toolUses": []
+    }
+  ]
+}

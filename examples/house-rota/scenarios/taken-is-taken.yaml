@@ -1,0 +1,40 @@
+# Tunde has the bins. Ada offers to do them; the assistant must say Tunde has them and
+# ask, and only move the chore once Ada says yes.
+name: a chore someone has is not moved without asking
+
+server:
+  url: http://localhost:8790/mcp
+  start: npx tsx ../server.ts
+  ready: http://localhost:8790/health
+  env:
+    PORT: '8790'
+
+members:
+  ada: local-ada
+  tunde: local-tunde
+
+host:
+  timezone: Africa/Lagos
+
+always:
+  speakable: true
+  maxWords: 60
+
+steps:
+  - say: I'll put the bins out tonight.
+    as: ada
+    expect:
+      called: [take_chore]
+      error: true
+      says: ['Tunde', '/\?/']
+
+  - say: Yes, I'll take them over.
+    as: ada
+    expect:
+      called: [take_chore]
+      result: ['taken over from Tunde']
+
+  - read: rota://week
+    as: tunde
+    expect:
+      matches: ['Bins: Ada has it']

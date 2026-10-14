@@ -1,0 +1,78 @@
+# The gauge says the generator is low. Grandma asks, Ada volunteers, and later Tunde
+# offers too, not knowing. A model plays the assistant, choosing tools from the server's
+# own descriptions, so this tests whether those descriptions and errors are good enough.
+name: nobody has the fuel
+
+server:
+  url: http://localhost:8790/mcp
+  start: npx tsx ../server.ts
+  ready: http://localhost:8790/health
+  env:
+    PORT: '8790'
+    ROTA_HOOK_SECRET: example-secret
+    STORY_TIME_HEADER: X-Story-Time
+
+members:
+  ada: local-ada
+  tunde: local-tunde
+  grandma: local-grandma
+
+host:
+  timezone: Africa/Lagos
+
+clock:
+  start: 2026-10-14T06:10:00Z
+  header: X-Story-Time
+
+# Checked on every spoken reply.
+always:
+  speakable: true
+  maxWords: 60
+
+steps:
+  - device: fuel gauge
+    webhook:
+      url: /hooks/fuel
+      body: { level: 18 }
+      sign: { secret: example-secret }
+
+  - say: Is anything waiting on someone this morning?
+    as: grandma
+    expect:
+      called: [list_chores]
+      says: ['/fuel|diesel|generator/i']
+      # Asking is not volunteering.
+      notCalled: [take_chore, mark_done]
+
+  - say: I'll get the diesel on my way back.
+    as: ada
+    expect:
+      called: [take_chore]
+      result: ['Ada has the generator fuel now']
+
+  - clock: +3h
+
+  - say: I'll sort out the fuel for the generator.
+    as: tunde
+    expect:
+      called: [take_chore]
+      # Ada has it, so the server refuses, and the assistant should say who has it.
+      error: true
+      says: ['Ada']
+      notCalled: [mark_done]
+
+  - say: No, leave it with Ada.
+    as: tunde
+    expect:
+      notCalled: [take_chore, mark_done]
+
+  - say: Done, the generator is full.
+    as: ada
+    expect:
+      called: [mark_done]
+      result: ['marked by Ada']
+
+  - read: rota://week
+    as: grandma
+    expect:
+      matches: ['Generator fuel: done by Ada']

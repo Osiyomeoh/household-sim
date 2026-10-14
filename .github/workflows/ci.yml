@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run format:check
+      - run: npm test
+      # The example scenarios, replayed: no model, no credentials, the real server.
+      - run: node dist/cli.js run examples/house-rota/scenarios/*.yaml --replay --junit junit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scenarios-node-${{ matrix.node }}
+          path: junit.xml

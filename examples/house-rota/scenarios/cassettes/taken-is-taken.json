@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "scenario": "a chore someone has is not moved without asking",
+  "model": "bedrock:us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "recordedAt": "2026-10-14T14:15:40.732Z",
+  "tools": {
+    "ada": "5213d4f7988be09e"
+  },
+  "turns": [
+    {
+      "step": 1,
+      "as": "ada",
+      "text": "",
+      "toolUses": [
+        {
+          "id": "tooluse_FWtHJadOoLJsvNtUYw3HDq",
+          "name": "take_chore",
+          "input": {
+            "chore": "bins"
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "as": "ada",
+      "text": "Tunde already has the bins. Do you want to take it over from them?",
+      "toolUses": []
+    },
+    {
+      "step": 2,
+      "as": "ada",
+      "text": "",
+      "toolUses": [
+        {
+          "id": "tooluse_6SkwLgmNOYgEH4UWny2yom",
+          "name": "take_chore",
+          "input": {
+            "chore": "bins",
+            "takeOver": true
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "as": "ada",
+      "text": "Got it. You have the bins now.",
+      "toolUses": []
+    }
+  ]
+}

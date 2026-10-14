@@ -1,0 +1,52 @@
+{
+  "name": "household-sim",
+  "version": "0.1.0",
+  "description": "Test a voice add-on's MCP server the way a household uses it: several people with their own credentials, a model choosing the tools, devices sending events, and pass/fail checks you can run in CI.",
+  "license": "MIT",
+  "author": "Osiyomeoh",
+  "type": "module",
+  "bin": {
+    "household-sim": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "alexa",
+    "voice",
+    "testing",
+    "harness",
+    "streamable-http"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "test": "node --import tsx --test \"test/*.test.ts\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "rota": "tsx examples/house-rota/server.ts",
+    "sim": "tsx src/cli.ts",
+    "prepare": "tsc -p tsconfig.json",
+    "examples": "node --import tsx src/cli.ts run examples/house-rota/scenarios/*.yaml --replay"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1131.0",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "yaml": "^2.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "prettier": "^3.6.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

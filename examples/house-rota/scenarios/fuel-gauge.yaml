@@ -1,0 +1,71 @@
+# The fuel gauge reports, the rota changes, and two people reach for the same chore.
+# No model is involved: every step is a device or a direct tool call, so this runs
+# anywhere, with no credentials, and gives the same answer every time.
+name: the fuel gauge asks for someone
+
+server:
+  url: http://localhost:8790/mcp
+  start: npx tsx ../server.ts
+  ready: http://localhost:8790/health
+  env:
+    PORT: '8790'
+    ROTA_HOOK_SECRET: example-secret
+    STORY_TIME_HEADER: X-Story-Time
+
+members:
+  ada: local-ada
+  tunde: local-tunde
+  grandma: local-grandma
+
+host:
+  timezone: Africa/Lagos
+
+clock:
+  start: 2026-10-14T06:10:00Z # 7:10 AM in Lagos
+  header: X-Story-Time
+
+steps:
+  - device: a forged fuel reading
+    webhook:
+      url: /hooks/fuel
+      body: { level: 18 }
+      headers: { X-Signature: '00' }
+    expect:
+      status: 401
+
+  - read: rota://week
+    as: grandma
+    expect:
+      matches: ['Generator fuel: nobody has it yet']
+
+  - device: fuel gauge
+    webhook:
+      url: /hooks/fuel
+      body: { level: 18 }
+      sign: { secret: example-secret }
+
+  - clock: +2h
+
+  - call: list_chores
+    as: grandma
+    expect:
+      result: ['needed someone since 7:10 AM', '18 percent']
+
+  - call: take_chore
+    as: ada
+    args: { chore: diesel }
+    expect:
+      result: 'Ada has the generator fuel now'
+
+  - call: take_chore
+    as: tunde
+    args: { chore: fuel }
+    expect:
+      error: true
+      result: 'Ada already has the generator fuel'
+
+  - call: mark_done
+    as: tunde
+    args: { chore: generator fuel }
+    expect:
+      result: ['marked by Tunde at 9:10 AM', 'Ada had it']

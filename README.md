@@ -264,8 +264,8 @@ The tests use a scripted one.
 
 ## Where it came from
 
-It began as the simulator for CareCircle, an Alexa+ add-on that keeps track of who is
-looking after what for a family member who needs care. Testing CareCircle meant several
+It began as the simulator for We've Got This, an Alexa+ add-on that keeps track of who is
+looking after what for a family member who needs care. Testing it meant several
 family members on their own accounts, a model choosing the tools, a doorbell and a phone
 sending events, and days passing, all in one story. The bugs that hurt most needed all of
 that at once. The worst put an appointment on the family's board dated 19 December 2024,

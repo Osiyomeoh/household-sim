@@ -4,6 +4,12 @@
   "description": "Test a voice add-on's MCP server the way a household uses it: several people with their own credentials, a model choosing the tools, devices sending events, and pass/fail checks you can run in CI.",
   "license": "MIT",
   "author": "Osiyomeoh",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Osiyomeoh/household-sim.git"
+  },
+  "homepage": "https://github.com/Osiyomeoh/household-sim#readme",
+  "bugs": "https://github.com/Osiyomeoh/household-sim/issues",
   "type": "module",
   "bin": {
     "household-sim": "dist/cli.js"

@@ -35,7 +35,13 @@ and a model's choices can be recorded once and replayed in CI for free.
 
 ## Try it
 
-You need Node 22 or newer.
+You need Node 22 or newer. To check your own server, nothing to clone:
+
+```sh
+npx household-sim check https://your-server.example/mcp --token <a user's token>
+```
+
+To see it play whole scenarios against a sample add-on:
 
 ```sh
 git clone https://github.com/Osiyomeoh/household-sim
@@ -234,7 +240,7 @@ A run whose checks fail is saved, because it is a true record of what the model 
 - run: npx household-sim run scenarios/*.yaml --replay --junit junit.xml
 ```
 
-Add it to your project with `npm install --save-dev github:Osiyomeoh/household-sim`.
+Add it to your project with `npm install --save-dev household-sim`.
 This repository's own workflow, [`.github/workflows/ci.yml`](.github/workflows/ci.yml), does
 the same for the examples.
 

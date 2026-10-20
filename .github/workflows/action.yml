@@ -1,0 +1,52 @@
+name: action
+
+# The GitHub Action in action.yml, used the way another repository would use it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # The example scenarios, replayed through the action: no model, no credentials.
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - id: sim
+        uses: ./
+        with:
+          command: run
+          scenarios: examples/house-rota/scenarios/*.yaml
+          junit: junit.xml
+      - run: test "${{ steps.sim.outputs.ok }}" = true
+
+  # The official MCP reference server, checked the way a voice host first sees it.
+  reference-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Start @modelcontextprotocol/server-everything over Streamable HTTP
+        run: |
+          npx --yes @modelcontextprotocol/server-everything@2.0.0 streamableHttp > everything.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -s -o /dev/null http://localhost:3001/mcp && exit 0
+            sleep 1
+          done
+          cat everything.log
+          exit 1
+      - uses: ./
+        with:
+          url: http://localhost:3001/mcp

@@ -244,6 +244,30 @@ Add it to your project with `npm install --save-dev household-sim`.
 This repository's own workflow, [`.github/workflows/ci.yml`](.github/workflows/ci.yml), does
 the same for the examples.
 
+Or use it as a GitHub Action. Each finding or failed step becomes an annotation on the
+run, and the job summary gets a table:
+
+```yaml
+- uses: Osiyomeoh/household-sim@main
+  with:
+    url: https://your-server.example/mcp
+    token: ${{ secrets.MCP_TEST_TOKEN }} # masked, and never on the command line
+
+- uses: Osiyomeoh/household-sim@main
+  with:
+    command: run
+    scenarios: scenarios/*.yaml # replayed: no model, no credentials
+    junit: junit.xml
+```
+
+`check` is the default command. `run` takes `mode` (`replay`, `record` or `live`), `model`,
+`cassettes` and `url`, as the CLI does. The `ok` output is `true` when everything passed,
+and `report` is the path of the full results as JSON.
+[`.github/workflows/action.yml`](.github/workflows/action.yml) runs the action on the
+examples, and checks the official MCP reference server,
+[`@modelcontextprotocol/server-everything`](https://www.npmjs.com/package/@modelcontextprotocol/server-everything),
+with it.
+
 ## Using it from code
 
 ```ts

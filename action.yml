@@ -1,0 +1,128 @@
+name: household-sim
+description: 'Test an MCP server the way a household uses it: check what a voice host would trip on, or play scenarios against it.'
+author: Osiyomeoh
+branding:
+  icon: home
+  color: green
+
+inputs:
+  command:
+    description: '`check` (connect and read the tools; needs `url`) or `run` (play `scenarios`).'
+    default: check
+  url:
+    description: "The server's MCP endpoint. For `run`, a server that is already running (the scenario's start command is skipped)."
+    default: ''
+  token:
+    description: "A user's token for `check`. Pass it from a secret; it is masked and never put on the command line."
+    default: ''
+  min-protocol:
+    description: 'For `check`: the oldest protocol version to accept, such as 2025-06-18.'
+    default: ''
+  scenarios:
+    description: 'For `run`: scenario files or globs, separated by spaces or new lines.'
+    default: ''
+  mode:
+    description: 'For `run`: `replay` (saved choices: no model, no credentials, no cost), `record` or `live`.'
+    default: replay
+  model:
+    description: 'For `run` in `record` or `live` mode: bedrock:<model id>, openai:<model> or ollama:<model>.'
+    default: ''
+  cassettes:
+    description: 'For `run`: where recordings live (default: cassettes/ beside each scenario).'
+    default: ''
+  junit:
+    description: 'For `run`: also write JUnit XML to this file.'
+    default: ''
+  version:
+    description: "The household-sim version to run from npm. Empty: this action's own version."
+    default: ''
+
+outputs:
+  ok:
+    description: '`true` when everything passed.'
+    value: ${{ steps.sim.outputs.ok }}
+  report:
+    description: The full results as JSON, written to this file.
+    value: ${{ steps.sim.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - id: sim
+      shell: bash
+      # Inputs reach the script as environment variables, never pasted into it, so a value
+      # cannot run as shell.
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        IN_COMMAND: ${{ inputs.command }}
+        IN_URL: ${{ inputs.url }}
+        HOUSEHOLD_SIM_TOKEN: ${{ inputs.token }}
+        IN_MIN_PROTOCOL: ${{ inputs.min-protocol }}
+        IN_SCENARIOS: ${{ inputs.scenarios }}
+        IN_MODE: ${{ inputs.mode }}
+        IN_MODEL: ${{ inputs.model }}
+        IN_CASSETTES: ${{ inputs.cassettes }}
+        IN_JUNIT: ${{ inputs.junit }}
+        IN_VERSION: ${{ inputs.version }}
+      run: |
+        # The runner starts bash with -e; a failed check must still reach the summary below.
+        set +e -o pipefail
+        [ -n "$HOUSEHOLD_SIM_TOKEN" ] && echo "::add-mask::$HOUSEHOLD_SIM_TOKEN"
+
+        # This repository, built (as in its own CI), runs itself; anywhere else the action
+        # runs the npm release that matches it.
+        if [ -z "$IN_VERSION" ] && [ -f "$ACTION_PATH/dist/cli.js" ]; then
+          sim=(node "$ACTION_PATH/dist/cli.js")
+        else
+          version="${IN_VERSION:-$(node -p "require(process.env.ACTION_PATH + '/package.json').version")}"
+          sim=(npx --yes "household-sim@$version")
+        fi
+
+        report="$RUNNER_TEMP/household-sim-$IN_COMMAND.json"
+        case "$IN_COMMAND" in
+          check)
+            [ -n "$IN_URL" ] || { echo "::error title=household-sim::check needs a url"; exit 2; }
+            args=(check "$IN_URL" --json)
+            [ -n "$HOUSEHOLD_SIM_TOKEN" ] && args+=(--token env:HOUSEHOLD_SIM_TOKEN)
+            [ -n "$IN_MIN_PROTOCOL" ] && args+=(--min-protocol "$IN_MIN_PROTOCOL")
+            "${sim[@]}" "${args[@]}" > "$report"
+            status=$?
+            ;;
+          run)
+            # Globs expand here, in the workspace.
+            read -r -d '' -a files <<< "$IN_SCENARIOS"
+            shopt -s nullglob
+            shopt -s globstar 2>/dev/null # bash 4 and later: ** reaches into folders
+            expanded=()
+            for f in "${files[@]}"; do
+              matches=($f)
+              [ ${#matches[@]} -gt 0 ] || { echo "::error title=household-sim::no scenario matches $f"; exit 2; }
+              expanded+=("${matches[@]}")
+            done
+            [ ${#expanded[@]} -gt 0 ] || { echo "::error title=household-sim::run needs scenarios"; exit 2; }
+            args=(run "${expanded[@]}" --json "$report")
+            case "$IN_MODE" in
+              replay) args+=(--replay) ;;
+              record) args+=(--record) ;;
+              live) ;;
+              *) echo "::error title=household-sim::mode is replay, record or live, not $IN_MODE"; exit 2 ;;
+            esac
+            [ -n "$IN_URL" ] && args+=(--url "$IN_URL")
+            [ -n "$IN_MODEL" ] && args+=(--model "$IN_MODEL")
+            [ -n "$IN_CASSETTES" ] && args+=(--cassettes "$IN_CASSETTES")
+            [ -n "$IN_JUNIT" ] && args+=(--junit "$IN_JUNIT")
+            "${sim[@]}" "${args[@]}"
+            status=$?
+            ;;
+          *)
+            echo "::error title=household-sim::command is check or run, not $IN_COMMAND"
+            exit 2
+            ;;
+        esac
+
+        if [ -s "$report" ]; then
+          node "$ACTION_PATH/action/summary.mjs" "$IN_COMMAND" "$report"
+        fi
+        echo "ok=$([ $status -eq 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+        echo "report=$report" >> "$GITHUB_OUTPUT"
+        exit $status
